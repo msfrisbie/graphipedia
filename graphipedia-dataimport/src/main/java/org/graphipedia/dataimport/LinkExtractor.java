@@ -32,7 +32,18 @@ import javax.xml.stream.XMLStreamWriter;
 
 public class LinkExtractor extends SimpleStaxParser {
 
-    private static final Pattern LINK_PATTERN = Pattern.compile("\\[\\[(.+?)\\]\\]");
+    private static String REDIRECT_REGEX = "(#REDIRECT)";
+    private static String LINK_REGEX = "\\[\\[(.+?)\\]\\]";
+    private static String HEADER_REGEX = "={2,5}(.+?)={2,5}";
+    private static String RELATED_REGEX = "\\{\\{(.+?)\\}\\}";//"|\\{\\{Related articles(.+?)\\}\\}";
+
+    private static String COMBO_REGEX = REDIRECT_REGEX + "|" +
+                                        LINK_REGEX + "|" +
+                                        HEADER_REGEX + "|" +
+                                        RELATED_REGEX;
+
+    // private static final Pattern LINK_PATTERN = Pattern.compile("\\[\\[(.+?)\\]\\]");
+    private static final Pattern COMBO_PATTERN = Pattern.compile(COMBO_REGEX);
 
     private final XMLStreamWriter writer;
     private final ProgressCounter pageCounter = new ProgressCounter();
@@ -79,6 +90,9 @@ public class LinkExtractor extends SimpleStaxParser {
         links.remove(title);
         
         for (String link : links) {
+
+            // String[] arr = 
+
             writer.writeStartElement("l");
             writer.writeCharacters(link);
             writer.writeEndElement();
@@ -92,18 +106,95 @@ public class LinkExtractor extends SimpleStaxParser {
     private Set<String> parseLinks(String text) {
         Set<String> links = new HashSet<String>();
         if (text != null) {
-            Matcher matcher = LINK_PATTERN.matcher(text);
+            Matcher matcher = COMBO_PATTERN.matcher(text);
+            Integer redirect_flag = 0;
+            Integer header_counter = 0;
+            // Integer link_counter = 0;
             while (matcher.find()) {
-                String link = matcher.group(1);
-                if (!link.contains(":")) {
-                    if (link.contains("|")) {
-                        link = link.substring(link.lastIndexOf('|') + 1);
+                // String link = matcher.group(1);
+                // System.out.println(matcher.group(0));
+                if (matcher.group(1)!=null) { // redirect
+                    redirect_flag = 1;
+                } else if (matcher.group(2)!=null) { // link
+                    String link = matcher.group(2);
+                    String identifier = "l";
+
+                    if (redirect_flag==1) {
+                        identifier = "r";
                     }
-                    links.add(link);
+
+                    if (!link.contains(":")) {
+                        if (link.contains("|")) {
+                            link = link.substring(link.lastIndexOf('|') + 1);
+                            // links.add(buildLink("r",matcher.group(2),header_counter));
+                        }
+                        // links.add(link);
+                        links.add(buildLink(identifier,link,header_counter));
+                    }
+
+                    //     // add link as a redirect
+                    //     if (!link.contains(":")) {
+                    //         if (link.contains("|")) {
+                    //             link = link.substring(link.lastIndexOf('|') + 1);
+                    //             // links.add(buildLink("r",matcher.group(2),header_counter));
+                    //         }
+                    //         // links.add(link);
+                    //         links.add(buildLink("r",link,header_counter));
+                    //     }
+                    //     // links.add(buildLink("r",matcher.group(2),header_counter));
+                    // } else {
+                    //     // add link as a normal link
+                    //     links.add(buildLink("l",matcher.group(2),header_counter));
+                    // }
+                } else if (matcher.group(3)!=null) { // header
+                    header_counter++;
+                } else { // related link
+
+                    String[] arr = matcher.group(4).split("\\|");
+                    Integer i = 0;
+                    for(String str: arr) {
+                        if (i==0) {
+
+                            // if (str!="Main") { // &&str!="Related articles") {
+                            if (str.contains("Main")||str.contains("Related articles")) {
+                            } else {
+                                // System.out.println("["+str+"]");
+                                break;
+                            }
+                            i = 1;
+                        } else {
+                            links.add(buildLink("h",str,header_counter));
+                        }
+                    }
                 }
+
+                // if matcher.group(1)!=null {
+                //     links.add("___REDIRECT___";
+                // }
+                // String header = matcher.group(2);
+                // if (header==null) {
+                //     // found a link, write link and increment counter
+                //     String link = matcher.group(3);
+                //     link_counter++;
+                // } else {
+                //     // found a new header, increment counter
+                //     header_counter++;
+                // }
+                // if (!link.contains(":")) {
+                //     if (link.contains("|")) {
+                //         link = link.substring(link.lastIndexOf('|') + 1);
+                //     }
+                //     links.add(  link + 
+                //                 "///" + 
+                //                 Integer.toString(header_counter));
+                // }
             }
         }
+        // links.add("___"+Integer.toString(link_counter)+"___");
         return links;
     }
 
+    private String buildLink(String identifier, String title, Integer counter) {
+        return "||" + identifier + Integer.toString(counter) + "||" + title;
+    }
 }
