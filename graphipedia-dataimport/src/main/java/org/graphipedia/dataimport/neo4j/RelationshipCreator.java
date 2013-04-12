@@ -23,6 +23,8 @@ package org.graphipedia.dataimport.neo4j;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.graphipedia.dataimport.ProgressCounter;
 import org.graphipedia.dataimport.SimpleStaxParser;
@@ -35,6 +37,10 @@ public class RelationshipCreator extends SimpleStaxParser {
     private final Map<String, Long> inMemoryIndex;
 
     private final ProgressCounter linkCounter = new ProgressCounter();
+
+    private static String METADATA_REGEX = "\\|\\|(.+?)\\|\\|";
+
+    private static final Pattern METADATA_PATTERN = Pattern.compile(METADATA_REGEX);
 
     private long nodeId;
     private int badLinkCount = 0;
@@ -57,7 +63,7 @@ public class RelationshipCreator extends SimpleStaxParser {
 
     @Override
     protected void handleElement(String element, String value) {
-        System.out.println(element);
+        // System.out.println(element);
         // this assumes in-order t -> l detection
         if ("t".equals(element)) {
             nodeId = findNodeId(value);
@@ -67,14 +73,24 @@ public class RelationshipCreator extends SimpleStaxParser {
     }
 
     private void createRelationship(long nodeId, String link, String linkclass) {
-        Long linkNodeId = findNodeId(link);
+        Long linkNodeId = findNodeId(extractLinkTitle(link));
+        String linkDistance = extractLinkCount(link);
         if (linkNodeId != null) {
             if (linkclass=="l") {
-                inserter.createRelationship(nodeId, linkNodeId, WikiRelationshipType.Link, null); //, MapUtil.map());
+                inserter.createRelationship(nodeId, 
+                                            linkNodeId, 
+                                            WikiRelationshipType.Link, 
+                                            null);//MapUtil.stringMap( "dist", linkDistance )); //, MapUtil.map());
             } else if (linkclass=="r") {
-                inserter.createRelationship(nodeId, linkNodeId, WikiRelationshipType.Redirect, null);
+                inserter.createRelationship(nodeId, 
+                                            linkNodeId, 
+                                            WikiRelationshipType.Redirect, 
+                                            null);//MapUtil.stringMap( "dist", linkDistance ));
             } else if (linkclass=="h") {
-                inserter.createRelationship(nodeId, linkNodeId, WikiRelationshipType.Related, null);
+                inserter.createRelationship(nodeId, 
+                                            linkNodeId, 
+                                            WikiRelationshipType.Related, 
+                                            null);//MapUtil.stringMap( "dist", linkDistance ));
             }
             linkCounter.increment();
         } else {
@@ -83,6 +99,19 @@ public class RelationshipCreator extends SimpleStaxParser {
     }
 
     // private enum
+
+    private String extractLinkTitle(String raw) {
+        return raw.replaceAll(METADATA_REGEX,"");
+    }
+
+    private String extractLinkCount(String raw) {
+        Matcher m = METADATA_PATTERN.matcher(raw);
+        String s = "";
+        while (m.find()) {
+            s = m.group(1);    
+        }
+        return s;
+    }
 
     private Long findNodeId(String title) {
         return inMemoryIndex.get(title);

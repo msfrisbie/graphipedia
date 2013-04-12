@@ -104,9 +104,9 @@ public class LinkExtractor extends SimpleStaxParser {
 
             // writer.writeStartElement("l");
             writer.writeStartElement(linkclass);
-            if (linkclass.length()>1) {
-                System.out.println(linkclass);
-            }
+            // if (linkclass.length()>1) {
+            //     System.out.println(linkclass);
+            // }
             writer.writeCharacters(link);
             writer.writeEndElement();
         }
@@ -145,20 +145,6 @@ public class LinkExtractor extends SimpleStaxParser {
                         links.add(buildLink(identifier,link,header_counter));
                     }
 
-                    //     // add link as a redirect
-                    //     if (!link.contains(":")) {
-                    //         if (link.contains("|")) {
-                    //             link = link.substring(link.lastIndexOf('|') + 1);
-                    //             // links.add(buildLink("r",matcher.group(2),header_counter));
-                    //         }
-                    //         // links.add(link);
-                    //         links.add(buildLink("r",link,header_counter));
-                    //     }
-                    //     // links.add(buildLink("r",matcher.group(2),header_counter));
-                    // } else {
-                    //     // add link as a normal link
-                    //     links.add(buildLink("l",matcher.group(2),header_counter));
-                    // }
                 } else if (matcher.group(3)!=null) { // header
                     header_counter++;
                 } else { // related link
@@ -180,27 +166,6 @@ public class LinkExtractor extends SimpleStaxParser {
                         }
                     }
                 }
-
-                // if matcher.group(1)!=null {
-                //     links.add("___REDIRECT___";
-                // }
-                // String header = matcher.group(2);
-                // if (header==null) {
-                //     // found a link, write link and increment counter
-                //     String link = matcher.group(3);
-                //     link_counter++;
-                // } else {
-                //     // found a new header, increment counter
-                //     header_counter++;
-                // }
-                // if (!link.contains(":")) {
-                //     if (link.contains("|")) {
-                //         link = link.substring(link.lastIndexOf('|') + 1);
-                //     }
-                //     links.add(  link + 
-                //                 "///" + 
-                //                 Integer.toString(header_counter));
-                // }
             }
         }
         // links.add("___"+Integer.toString(link_counter)+"___");
