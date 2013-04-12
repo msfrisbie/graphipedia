@@ -36,6 +36,7 @@ public class LinkExtractor extends SimpleStaxParser {
     private static String LINK_REGEX = "\\[\\[(.+?)\\]\\]";
     private static String HEADER_REGEX = "={2,5}(.+?)={2,5}";
     private static String RELATED_REGEX = "\\{\\{(.+?)\\}\\}";//"|\\{\\{Related articles(.+?)\\}\\}";
+    private static String CLASS_REGEX = "\\|\\|(.+?)////";
 
     private static String COMBO_REGEX = REDIRECT_REGEX + "|" +
                                         LINK_REGEX + "|" +
@@ -44,6 +45,7 @@ public class LinkExtractor extends SimpleStaxParser {
 
     // private static final Pattern LINK_PATTERN = Pattern.compile("\\[\\[(.+?)\\]\\]");
     private static final Pattern COMBO_PATTERN = Pattern.compile(COMBO_REGEX);
+    private static final Pattern CLASS_PATTERN = Pattern.compile(CLASS_REGEX);
 
     private final XMLStreamWriter writer;
     private final ProgressCounter pageCounter = new ProgressCounter();
@@ -89,11 +91,22 @@ public class LinkExtractor extends SimpleStaxParser {
         Set<String> links = parseLinks(text);
         links.remove(title);
         
+        String linkclass = "";
+
         for (String link : links) {
 
-            // String[] arr = 
+            Matcher metadata = CLASS_PATTERN.matcher(link);
 
-            writer.writeStartElement("l");
+            while(metadata.find()) {
+                linkclass = metadata.group(1);
+                link = link.replace(metadata.group(0),"||");
+            }
+
+            // writer.writeStartElement("l");
+            writer.writeStartElement(linkclass);
+            if (linkclass.length()>1) {
+                System.out.println(linkclass);
+            }
             writer.writeCharacters(link);
             writer.writeEndElement();
         }
@@ -195,6 +208,6 @@ public class LinkExtractor extends SimpleStaxParser {
     }
 
     private String buildLink(String identifier, String title, Integer counter) {
-        return "||" + identifier + Integer.toString(counter) + "||" + title;
+        return "||" + identifier + "////" + Integer.toString(counter) + "||" + title;
     }
 }

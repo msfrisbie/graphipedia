@@ -53,24 +53,36 @@ public class RelationshipCreator extends SimpleStaxParser {
         return badLinkCount;
     }
 
+    // element is the XML tag
+
     @Override
     protected void handleElement(String element, String value) {
+        System.out.println(element);
+        // this assumes in-order t -> l detection
         if ("t".equals(element)) {
             nodeId = findNodeId(value);
-        } else if ("l".equals(element)) {
-            createRelationship(nodeId, value);
+        } else if ("l".equals(element)||"r".equals(element)||"h".equals(element)) {
+            createRelationship(nodeId, value, element);
         }
     }
 
-    private void createRelationship(long nodeId, String link) {
+    private void createRelationship(long nodeId, String link, String linkclass) {
         Long linkNodeId = findNodeId(link);
         if (linkNodeId != null) {
-            inserter.createRelationship(nodeId, linkNodeId, WikiRelationshipType.Link, MapUtil.map());
+            if (linkclass=="l") {
+                inserter.createRelationship(nodeId, linkNodeId, WikiRelationshipType.Link, null); //, MapUtil.map());
+            } else if (linkclass=="r") {
+                inserter.createRelationship(nodeId, linkNodeId, WikiRelationshipType.Redirect, null);
+            } else if (linkclass=="h") {
+                inserter.createRelationship(nodeId, linkNodeId, WikiRelationshipType.Related, null);
+            }
             linkCounter.increment();
         } else {
             badLinkCount++;
         }
     }
+
+    // private enum
 
     private Long findNodeId(String title) {
         return inMemoryIndex.get(title);

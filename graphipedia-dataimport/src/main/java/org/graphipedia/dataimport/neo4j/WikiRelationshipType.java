@@ -23,4 +23,4 @@ package org.graphipedia.dataimport.neo4j;
 
 import org.neo4j.graphdb.RelationshipType;
 
-public enum WikiRelationshipType implements RelationshipType { Link }
+public enum WikiRelationshipType implements RelationshipType { Link, Related, Redirect }
