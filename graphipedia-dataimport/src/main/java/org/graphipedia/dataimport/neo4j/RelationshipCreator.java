@@ -23,6 +23,7 @@ package org.graphipedia.dataimport.neo4j;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +31,9 @@ import org.graphipedia.dataimport.ProgressCounter;
 import org.graphipedia.dataimport.SimpleStaxParser;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
+
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.DynamicRelationshipType;
 
 public class RelationshipCreator extends SimpleStaxParser {
 
@@ -46,7 +50,7 @@ public class RelationshipCreator extends SimpleStaxParser {
     private int badLinkCount = 0;
 
     public RelationshipCreator(BatchInserter inserter,  Map<String, Long> inMemoryIndex) {
-        super(Arrays.asList("t", "l"));
+        super(Arrays.asList("t", "l", "h", "r"));
         this.inserter = inserter;
         this.inMemoryIndex = inMemoryIndex;
     }
@@ -75,23 +79,34 @@ public class RelationshipCreator extends SimpleStaxParser {
     private void createRelationship(long nodeId, String link, String linkclass) {
         Long linkNodeId = findNodeId(extractLinkTitle(link));
         String linkDistance = extractLinkCount(link);
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put("dist",linkDistance);
+        // properties.put("blart","sharg");
+        // RelationshipType knows = DynamicRelationshipType.withName( "KNOWS" );
         if (linkNodeId != null) {
-            if (linkclass=="l") {
-                inserter.createRelationship(nodeId, 
-                                            linkNodeId, 
-                                            WikiRelationshipType.Link, 
-                                            null);//MapUtil.stringMap( "dist", linkDistance )); //, MapUtil.map());
-            } else if (linkclass=="r") {
-                inserter.createRelationship(nodeId, 
-                                            linkNodeId, 
-                                            WikiRelationshipType.Redirect, 
-                                            null);//MapUtil.stringMap( "dist", linkDistance ));
-            } else if (linkclass=="h") {
-                inserter.createRelationship(nodeId, 
-                                            linkNodeId, 
-                                            WikiRelationshipType.Related, 
-                                            null);//MapUtil.stringMap( "dist", linkDistance ));
-            }
+            // System.out.println(linkNodeId);
+            inserter.createRelationship(nodeId,
+                                        linkNodeId,
+                                        // knows,
+                                        // WikiRelationshipType.Redirect,
+                                        getType(linkclass),
+                                        properties);
+            // if (linkclass=="l") {
+            //     inserter.createRelationship(nodeId, 
+            //                                 linkNodeId, 
+            //                                 WikiRelationshipType.Link, 
+            //                                 properties);//MapUtil.stringMap( "dist", linkDistance )); //, MapUtil.map());
+            // } else if (linkclass=="r") {
+            //     inserter.createRelationship(nodeId, 
+            //                                 linkNodeId, 
+            //                                 WikiRelationshipType.Redirect, 
+            //                                 properties);//MapUtil.stringMap( "dist", linkDistance ));
+            // } else if (linkclass=="h") {
+            //     inserter.createRelationship(nodeId, 
+            //                                 linkNodeId, 
+            //                                 WikiRelationshipType.Related, 
+            //                                 properties);//MapUtil.stringMap( "dist", linkDistance ));
+            // }
             linkCounter.increment();
         } else {
             badLinkCount++;
@@ -117,4 +132,20 @@ public class RelationshipCreator extends SimpleStaxParser {
         return inMemoryIndex.get(title);
     }
 
+    private WikiRelationshipType getType(String linkclass) {
+        // if (linkclass!="l") { 
+        //     System.out.println(linkclass);
+        // }
+        // where are these periods coming from?
+        linkclass = linkclass.replaceAll("\\.","");
+        if (linkclass=="l") {
+            return WikiRelationshipType.Link;
+        } else if (linkclass=="r") {
+            return WikiRelationshipType.Redirect;
+        } else if (linkclass=="h") {
+            return WikiRelationshipType.Related;
+        }
+        System.out.println("This should never execute: [" + linkclass + "]");
+        return WikiRelationshipType.Link;
+    }
 }
