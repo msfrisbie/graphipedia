@@ -67,7 +67,6 @@ public class RelationshipCreator extends SimpleStaxParser {
 
     @Override
     protected void handleElement(String element, String value) {
-        // System.out.println(element);
         // this assumes in-order t -> l detection
         if ("t".equals(element)) {
             nodeId = findNodeId(value);
@@ -81,39 +80,16 @@ public class RelationshipCreator extends SimpleStaxParser {
         String linkDistance = extractLinkCount(link);
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("dist",linkDistance);
-        // properties.put("blart","sharg");
-        // RelationshipType knows = DynamicRelationshipType.withName( "KNOWS" );
         if (linkNodeId != null) {
-            // System.out.println(linkNodeId);
             inserter.createRelationship(nodeId,
                                         linkNodeId,
-                                        // knows,
-                                        // WikiRelationshipType.Redirect,
                                         getType(linkclass),
                                         properties);
-            // if (linkclass=="l") {
-            //     inserter.createRelationship(nodeId, 
-            //                                 linkNodeId, 
-            //                                 WikiRelationshipType.Link, 
-            //                                 properties);//MapUtil.stringMap( "dist", linkDistance )); //, MapUtil.map());
-            // } else if (linkclass=="r") {
-            //     inserter.createRelationship(nodeId, 
-            //                                 linkNodeId, 
-            //                                 WikiRelationshipType.Redirect, 
-            //                                 properties);//MapUtil.stringMap( "dist", linkDistance ));
-            // } else if (linkclass=="h") {
-            //     inserter.createRelationship(nodeId, 
-            //                                 linkNodeId, 
-            //                                 WikiRelationshipType.Related, 
-            //                                 properties);//MapUtil.stringMap( "dist", linkDistance ));
-            // }
             linkCounter.increment();
         } else {
             badLinkCount++;
         }
     }
-
-    // private enum
 
     private String extractLinkTitle(String raw) {
         return raw.replaceAll(METADATA_REGEX,"");
@@ -133,10 +109,6 @@ public class RelationshipCreator extends SimpleStaxParser {
     }
 
     private WikiRelationshipType getType(String linkclass) {
-        // if (linkclass!="l") { 
-        //     System.out.println(linkclass);
-        // }
-        // where are these periods coming from?
         linkclass = linkclass.replaceAll("\\.","");
         if (linkclass=="l") {
             return WikiRelationshipType.Link;

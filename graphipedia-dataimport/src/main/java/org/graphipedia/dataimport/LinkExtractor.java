@@ -35,7 +35,7 @@ public class LinkExtractor extends SimpleStaxParser {
     private static String REDIRECT_REGEX = "(#REDIRECT)";
     private static String LINK_REGEX = "\\[\\[(.+?)\\]\\]";
     private static String HEADER_REGEX = "={2,5}(.+?)={2,5}";
-    private static String RELATED_REGEX = "\\{\\{(.+?)\\}\\}";//"|\\{\\{Related articles(.+?)\\}\\}";
+    private static String RELATED_REGEX = "\\{\\{(.+?)\\}\\}";
     private static String CLASS_REGEX = "\\|\\|(.+?)////";
 
     private static String COMBO_REGEX = REDIRECT_REGEX + "|" +
@@ -43,7 +43,6 @@ public class LinkExtractor extends SimpleStaxParser {
                                         HEADER_REGEX + "|" +
                                         RELATED_REGEX;
 
-    // private static final Pattern LINK_PATTERN = Pattern.compile("\\[\\[(.+?)\\]\\]");
     private static final Pattern COMBO_PATTERN = Pattern.compile(COMBO_REGEX);
     private static final Pattern CLASS_PATTERN = Pattern.compile(CLASS_REGEX);
 
@@ -102,11 +101,7 @@ public class LinkExtractor extends SimpleStaxParser {
                 link = link.replace(metadata.group(0),"||");
             }
 
-            // writer.writeStartElement("l");
             writer.writeStartElement(linkclass);
-            // if (linkclass.length()>1) {
-            //     System.out.println(linkclass);
-            // }
             writer.writeCharacters(link);
             writer.writeEndElement();
         }
@@ -124,8 +119,6 @@ public class LinkExtractor extends SimpleStaxParser {
             Integer header_counter = 0;
             // Integer link_counter = 0;
             while (matcher.find()) {
-                // String link = matcher.group(1);
-                // System.out.println(matcher.group(0));
                 if (matcher.group(1)!=null) { // redirect
                     redirect_flag = 1;
                 } else if (matcher.group(2)!=null) { // link
@@ -139,9 +132,7 @@ public class LinkExtractor extends SimpleStaxParser {
                     if (!link.contains(":")) {
                         if (link.contains("|")) {
                             link = link.substring(link.lastIndexOf('|') + 1);
-                            // links.add(buildLink("r",matcher.group(2),header_counter));
                         }
-                        // links.add(link);
                         links.add(buildLink(identifier,link,header_counter));
                     }
 
@@ -153,11 +144,8 @@ public class LinkExtractor extends SimpleStaxParser {
                     Integer i = 0;
                     for(String str: arr) {
                         if (i==0) {
-
-                            // if (str!="Main") { // &&str!="Related articles") {
                             if (str.contains("Main")||str.contains("Related articles")) {
                             } else {
-                                // System.out.println("["+str+"]");
                                 break;
                             }
                             i = 1;
@@ -168,7 +156,6 @@ public class LinkExtractor extends SimpleStaxParser {
                 }
             }
         }
-        // links.add("___"+Integer.toString(link_counter)+"___");
         return links;
     }
 
