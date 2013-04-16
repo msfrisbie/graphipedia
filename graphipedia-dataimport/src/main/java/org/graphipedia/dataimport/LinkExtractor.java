@@ -135,7 +135,11 @@ public class LinkExtractor extends SimpleStaxParser {
                             // String[] stringarr = link.split("\\|");
                             // System.out.println(link);
                             // System.out.println(stringarr[0]);
-                            links.add(buildLink(identifier,(link.split("\\|"))[0],header_counter));
+                            try {
+                                links.add(buildLink(identifier,(link.split("\\|"))[0],header_counter));
+                            } catch(ArrayIndexOutOfBoundsException e) {
+                                System.out.println(link);
+                            }
                             // links.add(buildLink(identifier,stringarr[1],header_counter));
 
                         } else {
