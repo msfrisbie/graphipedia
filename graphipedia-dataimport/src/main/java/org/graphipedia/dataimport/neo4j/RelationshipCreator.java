@@ -87,6 +87,8 @@ public class RelationshipCreator extends SimpleStaxParser {
                                         properties);
             linkCounter.increment();
         } else {
+            // System.out.println(link);
+            // System.out.println(extractLinkTitle(link));
             badLinkCount++;
         }
     }

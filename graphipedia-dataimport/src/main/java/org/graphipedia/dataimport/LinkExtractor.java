@@ -131,9 +131,16 @@ public class LinkExtractor extends SimpleStaxParser {
 
                     if (!link.contains(":")) {
                         if (link.contains("|")) {
-                            link = link.substring(link.lastIndexOf('|') + 1);
+                            // link = link.substring(link.lastIndexOf('|') + 1);
+                            // String[] stringarr = link.split("\\|");
+                            // System.out.println(link);
+                            // System.out.println(stringarr[0]);
+                            links.add(buildLink(identifier,(link.split("\\|"))[0],header_counter));
+                            // links.add(buildLink(identifier,stringarr[1],header_counter));
+
+                        } else {
+                            links.add(buildLink(identifier,link,header_counter));
                         }
-                        links.add(buildLink(identifier,link,header_counter));
                     }
 
                 } else if (matcher.group(3)!=null) { // header
