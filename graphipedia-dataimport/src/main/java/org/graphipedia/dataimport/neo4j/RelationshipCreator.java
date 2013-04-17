@@ -76,7 +76,8 @@ public class RelationshipCreator extends SimpleStaxParser {
     }
 
     private void createRelationship(long nodeId, String link, String linkclass) {
-        Long linkNodeId = findNodeId(extractLinkTitle(link));
+        String title = extractLinkTitle(link);
+        Long linkNodeId = findNodeId(title);
         String linkDistance = extractLinkCount(link);
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("dist",linkDistance);
@@ -89,7 +90,25 @@ public class RelationshipCreator extends SimpleStaxParser {
         } else {
             // System.out.println(link);
             // System.out.println(extractLinkTitle(link));
-            badLinkCount++;
+            if (title.length()<2) {
+                linkNodeId = findNodeId(title.toUpperCase());
+            } else {
+                linkNodeId = findNodeId(title.substring(0,1).toUpperCase() + title.substring(1)); 
+            }
+            if (linkNodeId != null) {
+                inserter.createRelationship(nodeId,
+                                            linkNodeId,
+                                            getType(linkclass),
+                                            properties);
+                linkCounter.increment();
+            } else {
+                // if (link.contains("philosophy")) {
+                //     System.out.println(link);
+                //     String title = extractLinkTitle(link);
+                //     System.out.println(title.substring(0,1).toUpperCase() + title.substring(1));
+                // }
+                badLinkCount++;
+            }
         }
     }
 

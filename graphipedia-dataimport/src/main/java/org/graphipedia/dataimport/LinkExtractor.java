@@ -171,6 +171,14 @@ public class LinkExtractor extends SimpleStaxParser {
     }
 
     private String buildLink(String identifier, String title, Integer counter) {
-        return "||" + identifier + "////" + Integer.toString(counter) + "||" + title;
+        return "||" + identifier + "////" + Integer.toString(counter) + "||" + stripHash(title);
+    }
+
+    private String stripHash(String title) {
+        String newtitle = title;
+        if (title.contains("#")) {
+            newtitle = title.substring(0,title.lastIndexOf('#'));
+        }
+        return newtitle;
     }
 }
